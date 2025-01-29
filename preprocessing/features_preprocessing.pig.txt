@@ -1,0 +1,42 @@
+-- Load the dataset with schema
+spotify_features = LOAD '/user/hadoop/dataset/spotify_features.csv'
+    USING PigStorage(',')
+    AS (
+        danceability:float,
+        energy:float,
+        key:int,
+        loudness:float,
+        mode:int,
+        speechiness:float,
+        acousticness:float,
+        instrumentalness:float,
+        liveness:float,
+        valence:float,
+        tempo:float,
+        type:chararray,
+        id:chararray,
+        uri:chararray,
+        track_href:chararray,
+        analysis_url:chararray,
+        duration_ms:int,
+        time_signature:int
+    );
+
+-- Group by key and calculate average tempo
+key_tempo_avg = GROUP spotify_features BY key;
+avg_tempo = FOREACH key_tempo_avg GENERATE
+    group AS key,
+    AVG(spotify_features.tempo) AS avg_tempo;
+
+-- Group by mode and calculate total tracks
+mode_count = GROUP spotify_features BY mode;
+total_tracks_by_mode = FOREACH mode_count GENERATE
+    group AS mode,
+    COUNT(spotify_features.id) AS total_tracks;
+
+-- Store the raw data
+STORE spotify_features INTO '/user/hadoop/processed/spotify_cleaned_features' USING PigStorage(',');
+
+-- Store the aggregated results
+STORE avg_tempo INTO '/user/hadoop/processed/features_tempo_avg' USING PigStorage(',');
+STORE total_tracks_by_mode INTO '/user/hadoop/processed/features_tracks_by_mode' USING PigStorage(',');

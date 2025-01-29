@@ -1,0 +1,54 @@
+CREATE EXTERNAL TABLE spotify_features (
+    danceability FLOAT,
+    energy FLOAT,
+    key INT,
+    loudness FLOAT,
+    mode INT,
+    speechiness FLOAT,
+    acousticness FLOAT,
+    instrumentalness FLOAT,
+    liveness FLOAT,
+    valence FLOAT,
+    tempo FLOAT,
+    type STRING,
+    id STRING,
+    uri STRING,
+    track_href STRING,
+    analysis_url STRING,
+    duration_ms INT,
+    time_signature INT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION '/user/hadoop/dataset/';
+
+--Query 1: Average Tempo by Key--
+SELECT key, AVG(tempo) AS avg_tempo
+FROM spotify_features
+GROUP BY key
+ORDER BY avg_tempo DESC;
+
+--Query 2: Tracks with the Highest Valence (Positivity)--
+SELECT id AS track_id, 
+       valence, 
+       track_href
+FROM spotify_features
+ORDER BY valence DESC
+LIMIT 5;
+
+--Query 3: Top 5 Tracks with the Loudest Audio Levels--
+SELECT id AS track_id, 
+       loudness, 
+       track_href
+FROM spotify_features
+ORDER BY loudness DESC
+LIMIT 5;
+
+
+
+
+
+
+
+

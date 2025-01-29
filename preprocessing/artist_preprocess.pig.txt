@@ -1,0 +1,44 @@
+-- Load the dataset with schema
+spotify_artist = LOAD '/user/hadoop/dataset/spotify_artist.csv'
+    USING PigStorage(',')
+    AS (
+        id:chararray,
+        name:chararray,
+        artist_popularity:int,
+        artist_genres:chararray,
+        followers:int,
+        genre_0:chararray,
+        genre_1:chararray,
+        genre_2:chararray,
+        genre_3:chararray,
+        genre_4:chararray,
+        genre_5:float,
+        genre_6:float
+    );
+
+-- Replace null values with defaults
+cleaned_artist = FOREACH spotify_artist GENERATE
+    id,
+    name,
+    artist_popularity,
+    (artist_genres IS NULL ? '[]' : artist_genres) AS artist_genres,
+    followers,
+    (genre_0 IS NULL ? '' : genre_0) AS genre_0,
+    (genre_1 IS NULL ? '' : genre_1) AS genre_1,
+    (genre_2 IS NULL ? '' : genre_2) AS genre_2,
+    (genre_3 IS NULL ? '' : genre_3) AS genre_3,
+    (genre_4 IS NULL ? '' : genre_4) AS genre_4,
+    (genre_5 IS NULL ? 0.0 : genre_5) AS genre_5,
+    (genre_6 IS NULL ? 0.0 : genre_6) AS genre_6;
+
+-- Group by artist name and calculate total followers
+artist_followers_total = GROUP cleaned_artist BY name;
+total_followers = FOREACH artist_followers_total GENERATE
+    group AS artist_name,
+    SUM(cleaned_artist.followers) AS total_followers;
+
+-- Store the cleaned data
+STORE cleaned_artist INTO '/user/hadoop/processed/spotify_cleaned_artist' USING PigStorage(',');
+
+-- Store the aggregated followers data
+STORE total_followers INTO '/user/hadoop/processed/artist_followers_total' USING PigStorage(',');

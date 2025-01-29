@@ -1,0 +1,58 @@
+--Creating a Hive table--
+CREATE EXTERNAL TABLE spotify_albums (
+    track_name STRING,
+    track_id STRING,
+    track_number INT,
+    duration_ms INT,
+    album_type STRING,
+    artists FLOAT,
+    total_tracks INT,
+    album_name STRING,
+    release_date STRING,
+    label STRING,
+    album_popularity INT,
+    album_id STRING,
+    artist_id STRING,
+    artist_0 STRING,
+    artist_1 STRING,
+    artist_2 STRING,
+    artist_3 STRING,
+    artist_4 STRING,
+    artist_5 STRING,
+    artist_6 STRING,
+    artist_7 FLOAT,
+    artist_8 FLOAT,
+    artist_9 FLOAT,
+    artist_10 FLOAT,
+    artist_11 FLOAT,
+    duration_sec FLOAT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION '/user/hadoop/dataset/';
+
+--Query 1: Top 5 Albums by Popularity--
+SELECT album_name, album_popularity
+FROM spotify_albums
+ORDER BY album_popularity DESC
+LIMIT 5;
+
+--Query 2: Albums with the Longest Total Duration--
+SELECT album_name, 
+       SUM(duration_sec) AS total_album_duration
+FROM spotify_albums
+GROUP BY album_name
+ORDER BY total_album_duration DESC
+LIMIT 5;
+
+--Query 3: Albums with the Most tracks--
+SELECT album_name, 
+       total_tracks
+FROM spotify_albums
+ORDER BY total_tracks DESC
+LIMIT 10;
+
+
+
+

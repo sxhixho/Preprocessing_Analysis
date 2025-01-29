@@ -1,0 +1,38 @@
+--Creating a Hive Table--
+CREATE EXTERNAL TABLE spotify_artist (
+    id STRING,
+    name STRING,
+    artist_popularity INT,
+    artist_genres STRING,
+    followers INT,
+    genre_0 STRING,
+    genre_1 STRING,
+    genre_2 STRING,
+    genre_3 STRING,
+    genre_4 STRING,
+    genre_5 FLOAT,
+    genre_6 FLOAT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION '/user/hadoop/dataset/';
+
+--Query 1: Top 5 Artists by Popularity--
+SELECT name, artist_popularity
+FROM spotify_artist
+ORDER BY artist_popularity DESC
+LIMIT 5;
+ 
+--Query 2: Top 5 Genres by Total Followers--
+SELECT genre_0, SUM(followers) AS total_followers
+FROM spotify_artist
+GROUP BY genre_0
+ORDER BY total_followers DESC
+LIMIT 5;
+
+--Query 3: Top 5 Most Followed Artists--
+SELECT name AS artist_name, followers
+FROM spotify_artist
+ORDER BY followers DESC
+LIMIT 5;

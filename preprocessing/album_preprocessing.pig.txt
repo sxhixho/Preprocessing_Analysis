@@ -1,0 +1,79 @@
+-- Load the dataset with schema
+spotify_albums = LOAD '/user/hadoop/dataset/spotify_albums.csv'
+    USING PigStorage(',')
+    AS (
+        track_name:chararray,
+        track_id:chararray,
+        track_number:int,
+        duration_ms:int,
+        album_type:chararray,
+        artists:float,
+        total_tracks:int,
+        album_name:chararray,
+        release_date:chararray,
+        label:chararray,
+        album_popularity:int,
+        album_id:chararray,
+        artist_id:chararray,
+        artist_0:chararray,
+        artist_1:chararray,
+        artist_2:chararray,
+        artist_3:chararray,
+        artist_4:chararray,
+        artist_5:chararray,
+        artist_6:chararray,
+        artist_7:float,
+        artist_8:float,
+        artist_9:float,
+        artist_10:float,
+        artist_11:float,
+        duration_sec:float
+    );
+
+-- Replace null values with defaults
+cleaned_albums = FOREACH spotify_albums GENERATE
+    track_name,
+    track_id,
+    track_number,
+    duration_ms,
+    album_type,
+    (artists IS NULL ? 0.0 : artists) AS artists,
+    total_tracks,
+    album_name,
+    release_date,
+    label,
+    album_popularity,
+    album_id,
+    artist_id,
+    (artist_0 IS NULL ? '' : artist_0) AS artist_0,
+    (artist_1 IS NULL ? '' : artist_1) AS artist_1,
+    (artist_2 IS NULL ? '' : artist_2) AS artist_2,
+    (artist_3 IS NULL ? '' : artist_3) AS artist_3,
+    (artist_4 IS NULL ? '' : artist_4) AS artist_4,
+    (artist_5 IS NULL ? '' : artist_5) AS artist_5,
+    (artist_6 IS NULL ? '' : artist_6) AS artist_6,
+    (artist_7 IS NULL ? 0.0 : artist_7) AS artist_7,
+    (artist_8 IS NULL ? 0.0 : artist_8) AS artist_8,
+    (artist_9 IS NULL ? 0.0 : artist_9) AS artist_9,
+    (artist_10 IS NULL ? 0.0 : artist_10) AS artist_10,
+    (artist_11 IS NULL ? 0.0 : artist_11) AS artist_11,
+    duration_sec;
+
+-- Group by album ID and calculate the average track duration
+album_duration_avg = GROUP cleaned_albums BY album_id;
+avg_duration = FOREACH album_duration_avg GENERATE
+    group AS album_id,
+    AVG(cleaned_albums.duration_sec) AS avg_duration;
+
+-- Group by album type and calculate total albums
+album_type_count = GROUP cleaned_albums BY album_type;
+type_count = FOREACH album_type_count GENERATE
+    group AS album_type,
+    COUNT(cleaned_albums.album_id) AS total_albums;
+
+-- Store the cleaned data
+STORE cleaned_albums INTO '/user/hadoop/processed/spotify_cleaned_albums' USING PigStorage(',');
+
+-- Store the aggregated results
+STORE avg_duration INTO '/user/hadoop/processed/album_duration_avg' USING PigStorage(',');
+STORE type_count INTO '/user/hadoop/processed/album_type_count' USING PigStorage(',');
